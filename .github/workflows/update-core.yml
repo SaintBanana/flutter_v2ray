@@ -24,6 +24,7 @@ jobs:
 
       - name: move libv2ray.aar to Mahsa Core
         run: |
+          mkdir -p android/libs
           mv libv2ray.aar ./android/libs/libv2ray.aar
 
         
