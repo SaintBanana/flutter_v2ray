@@ -134,9 +134,9 @@ public class FlutterV2rayPlugin implements FlutterPlugin, ActivityAware, PluginR
                     for (String config : configs) {
                         executor.submit(() -> {
                             try {
-                                Long result = V2rayController.getV2rayServerDelay(config, url);
-                                if (result != null) {
-                                    realPings.put(config, result);
+                                Long res = V2rayController.getV2rayServerDelay(config, url);
+                                if (res != null) {
+                                    realPings.put(config, res);
                                 }
                             } finally {
                                 latch.countDown();
