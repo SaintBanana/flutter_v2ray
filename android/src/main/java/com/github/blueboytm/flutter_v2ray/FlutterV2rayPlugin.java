@@ -35,9 +35,6 @@ import io.flutter.plugin.common.EventChannel;
 import io.flutter.plugin.common.MethodChannel;
 import io.flutter.plugin.common.PluginRegistry;
 
-/**
- * FlutterV2rayPlugin
- */
 public class FlutterV2rayPlugin implements FlutterPlugin, ActivityAware, PluginRegistry.ActivityResultListener {
 
     private static final int REQUEST_CODE_VPN_PERMISSION = 24;
@@ -109,7 +106,8 @@ public class FlutterV2rayPlugin implements FlutterPlugin, ActivityAware, PluginR
                 case "getServerDelay":
                     executor.submit(() -> {
                         try {
-                            result.success(V2rayController.getV2rayServerDelay(call.argument("config"), call.argument("url")));
+                            Long delay = V2rayController.getV2rayServerDelay(call.argument("config"), call.argument("url"));
+                            result.success(delay != null ? delay : -1);
                         } catch (Exception e) {
                             result.success(-1);
                         }
@@ -125,57 +123,34 @@ public class FlutterV2rayPlugin implements FlutterPlugin, ActivityAware, PluginR
                         }
                     });
                     break;
-
                 case "getAllServerDelay":
-                    String res = call.argument("configs");
-                    List<String> configs = new Gson().fromJson(res, List.class);
+                    String configsJson = call.argument("configs");
+                    List<String> configs = new Gson().fromJson(configsJson, List.class);
 
                     ConcurrentHashMap<String, Long> realPings = new ConcurrentHashMap<>();
-
                     CountDownLatch latch = new CountDownLatch(configs.size());
 
                     for (String config : configs) {
-                        new Thread(new Runnable() {
-                            @Override
-                            public void run() {
-                                try {
-                                    // Simulate the ping operation
-                                    Long result = V2rayController.getV2rayServerDelay(config, "");
-                                    Map<String, Long> myMap = new HashMap<>();
-                                    myMap.put(config, result);
-//                                    android.util.Log.d("Plugin", "test ping: " + myMap);
-
-                                    if (result != null) {
-                                        realPings.put(config, result);
-                                    }
-                                } finally {
-                                    // Decrement the latch count when the thread finishes
-                                    latch.countDown();
+                        executor.submit(() -> {
+                            try {
+                                Long result = V2rayController.getV2rayServerDelay(config, "");
+                                if (result != null) {
+                                    realPings.put(config, result);
                                 }
+                            } finally {
+                                latch.countDown();
                             }
-                        }).start();
+                        });
                     }
 
-                    new Thread(new Runnable() {
-                        @Override
-                        public void run() {
-                            try {
-                                // Wait for all threads to finish
-                                latch.await();
-
-                                // Run on UI thread to return the result
-                                activity.runOnUiThread(new Runnable() {
-                                    @Override
-                                    public void run() {
-//                                        android.util.Log.d("Plugin", "Final pings: " + realPings);
-                                        result.success(new Gson().toJson(realPings));
-                                    }
-                                });
-                            } catch (InterruptedException e) {
-                                e.printStackTrace();
-                            }
+                    executor.submit(() -> {
+                        try {
+                            latch.await();
+                            result.success(realPings);
+                        } catch (InterruptedException e) {
+                            result.success(new HashMap<>());
                         }
-                    }).start();
+                    });
 
                     break;
                 case "getCoreVersion":
@@ -196,11 +171,11 @@ public class FlutterV2rayPlugin implements FlutterPlugin, ActivityAware, PluginR
                     }
                     break;
                 default:
+                    result.notImplemented();
                     break;
             }
         });
     }
-
 
     @Override
     public void onDetachedFromEngine(@NonNull FlutterPluginBinding binding) {
