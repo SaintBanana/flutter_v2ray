@@ -96,8 +96,8 @@ class FlutterV2ray {
     );
   }
 
-  Future<dynamic> getAllServerDelay({required List<String> configs}) async {
-    return FlutterV2rayPlatform.instance.getAllServerDelay(configs: configs);
+  Future<dynamic> getAllServerDelay({required List<String> configs, String url = 'https://google.com/generate_204'}) async {
+    return FlutterV2rayPlatform.instance.getAllServerDelay(configs: configs, url: url);
   }
 
   /// Stop V2Ray service.

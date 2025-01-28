@@ -125,6 +125,7 @@ public class FlutterV2rayPlugin implements FlutterPlugin, ActivityAware, PluginR
                     break;
                 case "getAllServerDelay":
                     String configsJson = call.argument("configs");
+                    String url = call.argument("url");
                     List<String> configs = new Gson().fromJson(configsJson, List.class);
 
                     ConcurrentHashMap<String, Long> realPings = new ConcurrentHashMap<>();
@@ -133,7 +134,7 @@ public class FlutterV2rayPlugin implements FlutterPlugin, ActivityAware, PluginR
                     for (String config : configs) {
                         executor.submit(() -> {
                             try {
-                                Long result = V2rayController.getV2rayServerDelay(config, "");
+                                Long result = V2rayController.getV2rayServerDelay(config, url);
                                 if (result != null) {
                                     realPings.put(config, result);
                                 }

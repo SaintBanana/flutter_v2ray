@@ -74,10 +74,11 @@ class MethodChannelFlutterV2ray extends FlutterV2rayPlatform {
 
 
   @override
-  Future<dynamic> getAllServerDelay({required List<String> configs}) {
+  Future<dynamic> getAllServerDelay({required List<String> configs, String url = 'https://google.com/generate_204'}) {
     final res = jsonEncode(configs);
     return methodChannel.invokeMethod('getAllServerDelay', {
       "configs": res,
+      "url": url
     });
   }
 
