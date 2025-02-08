@@ -96,42 +96,13 @@ abstract class V2RayURL {
     "balancers": []
   };
 
-  Map<String, dynamic>? warp = null;
-  List<dynamic> getOutbounds() {
-    if (warp != null) {
-      return [outbound1, warp, outbound2, outbound3];
-    }
-
-
-    return [outbound1, outbound2, outbound3];
-  }
-
   Map<String, dynamic> get fullConfiguration => {
         "log": log,
         "inbounds": [inbound],
-        "outbounds": getOutbounds(),
+        "outbounds": [outbound1, outbound2, outbound3],
         "dns": dns,
         "routing": routing,
       };
-
-  void warpify(Map<String, dynamic> parsedWarp) {
-    parsedWarp["tag"] = "warpIR";
-    warp = parsedWarp;
-    routing["rules"] = [
-      {
-        "outboundTag": "proxy",
-        "port": "53",
-        "type": "field"
-      },
-      {
-        "id": "5627785659655799759",
-        "type": "field",
-        "port": "0-65535",
-        "outboundTag": "proxy",
-        "enabled": true
-      }
-    ];
-  }
 
   /// Generate Full V2Ray Configuration
   ///
@@ -156,9 +127,7 @@ abstract class V2RayURL {
     "realitySettings": null,
     "grpcSettings": null,
     "dsSettings": null,
-    "sockopt": this.warp == null ? null : {
-      "dialerProxy": "warpIR"
-    }
+    "sockopt": null
   };
 
   String populateTransportSettings({
